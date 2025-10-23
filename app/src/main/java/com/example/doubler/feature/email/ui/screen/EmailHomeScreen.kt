@@ -14,9 +14,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.doubler.core.auth.data.repository.LogoutRepositoryImpl
 import com.example.doubler.core.user.data.repository.UserRepositoryImpl
 import com.example.doubler.feature.auth.data.local.PreferencesDataSource
+import com.example.doubler.feature.email.data.local.datasource.EmailLocalDataSource
 import com.example.doubler.feature.home.ui.viewModel.HomeViewModel
+import com.example.doubler.feature.persona.data.local.PersonaPreferencesDataSource
+import com.example.doubler.feature.persona.data.local.database.PersonaDatabase
+import com.example.doubler.feature.persona.data.local.datasource.PersonaLocalDataSource
+import com.example.doubler.feature.persona.data.repository.CurrentPersonaRepositoryImpl
+import com.example.doubler.feature.persona.data.repository.PersonaRepositoryImpl
+import com.example.notthefinal.core.network.ApiProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,10 +38,35 @@ fun EmailHomeScreen(
     onNavigateToCompose: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val personaDb = PersonaDatabase.getDatabase(context)
+    val personaLocalDataSource = PersonaLocalDataSource(
+        personaDao = personaDb.personaDao(),
+    )
+
     val viewModel: HomeViewModel = viewModel {
+        val userRepository = UserRepositoryImpl(
+            preferencesDataSource = PreferencesDataSource(context)
+        )
+        val database = com.example.doubler.feature.email.data.local.database.EmailDatabase.getDatabase(context)
+        val localDataSource = com.example.doubler.feature.email.data.local.datasource.EmailLocalDataSource(
+            emailDao = database.emailDao(),
+            recipientDao = database.emailRecipientDao(),
+            senderDao = database.emailSenderDao()
+        )
         HomeViewModel(
-            userRepository = UserRepositoryImpl(
-                preferencesDataSource = PreferencesDataSource(context)
+            userRepository =userRepository ,
+            currentPersonaRepository = CurrentPersonaRepositoryImpl(
+                personaRepository = PersonaRepositoryImpl(
+                    personaLocalDataSource = personaLocalDataSource,
+                    personaApiService =  ApiProvider.getInstance(context).personaApiService
+                ),
+                personaPreferencesDataSource = PersonaPreferencesDataSource(context)
+            ),
+            logoutRepository = LogoutRepositoryImpl(
+                personaPreferencesDataSource = PersonaPreferencesDataSource(context)
+                , emailLocalDataSource = localDataSource,
+                personaLocalDataSource = personaLocalDataSource,
+                userRepository = userRepository
             )
         )
     }

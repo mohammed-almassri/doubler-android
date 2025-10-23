@@ -113,6 +113,9 @@ interface EmailRecipientDao {
     
     @Query("DELETE FROM email_recipients WHERE emailId = :emailId")
     suspend fun deleteRecipientsByEmailId(emailId: String)
+    
+    @Query("DELETE FROM email_recipients")
+    suspend fun clearAllRecipients()
 }
 
 @Dao
@@ -132,4 +135,7 @@ interface EmailSenderDao {
     
     @Delete
     suspend fun deleteSender(sender: EmailSenderEntity)
+    
+    @Query("DELETE FROM email_senders")
+    suspend fun clearAllSenders()
 }

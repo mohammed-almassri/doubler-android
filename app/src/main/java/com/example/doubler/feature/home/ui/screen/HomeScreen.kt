@@ -18,10 +18,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.doubler.core.auth.data.repository.LogoutRepositoryImpl
 import com.example.doubler.core.user.data.repository.UserRepositoryImpl
 import com.example.doubler.feature.auth.data.local.PreferencesDataSource
+import com.example.doubler.feature.email.data.local.database.EmailDatabase
+import com.example.doubler.feature.email.data.local.datasource.EmailLocalDataSource
 import com.example.doubler.feature.home.ui.state.HomeUiState
 import com.example.doubler.feature.home.ui.viewModel.HomeViewModel
+import com.example.doubler.feature.persona.data.local.PersonaPreferencesDataSource
+import com.example.doubler.feature.persona.data.local.database.PersonaDatabase
+import com.example.doubler.feature.persona.data.local.datasource.PersonaLocalDataSource
+import com.example.doubler.feature.persona.data.repository.CurrentPersonaRepositoryImpl
+import com.example.doubler.feature.persona.data.repository.PersonaRepositoryImpl
+import com.example.notthefinal.core.network.ApiProvider
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,10 +42,37 @@ fun HomeScreen(
     onNavigateToEmailHome: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val personaDb = PersonaDatabase.getDatabase(context)
+    val personaLocalDataSource = PersonaLocalDataSource(
+        personaDao = personaDb.personaDao(),
+    )
+    
+    val emailDb = EmailDatabase.getDatabase(context)
+    val emailLocalDataSource = EmailLocalDataSource(
+        emailDao = emailDb.emailDao(),
+        recipientDao = emailDb.emailRecipientDao(),
+        senderDao = emailDb.emailSenderDao()
+    )
+    
+    val preferencesDataSource = PreferencesDataSource(context)
+    val personaPreferencesDataSource = PersonaPreferencesDataSource(context)
+    val userRepository = UserRepositoryImpl(preferencesDataSource)
+
     val viewModel: HomeViewModel = viewModel {
         HomeViewModel(
-            userRepository = UserRepositoryImpl(
-                preferencesDataSource = PreferencesDataSource(context)
+            userRepository = userRepository,
+            currentPersonaRepository = CurrentPersonaRepositoryImpl(
+                personaRepository = PersonaRepositoryImpl(
+                    personaLocalDataSource = personaLocalDataSource,
+                    personaApiService =  ApiProvider.getInstance(context).personaApiService
+                ),
+                personaPreferencesDataSource = personaPreferencesDataSource
+            ),
+            logoutRepository = LogoutRepositoryImpl(
+                userRepository = userRepository,
+                emailLocalDataSource = emailLocalDataSource,
+                personaLocalDataSource = personaLocalDataSource,
+                personaPreferencesDataSource = personaPreferencesDataSource
             )
         )
     }

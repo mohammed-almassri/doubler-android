@@ -38,19 +38,19 @@ class SyncDataWorker(
 
     private suspend fun syncEmails(apiProvider: ApiProvider) {
         try {
-            withContext(Dispatchers.IO) {
-                val emailRepository = EmailRepositoryImpl(apiProvider.emailApiService)
-                
-                // Sync inbox emails
-                emailRepository.getInbox()
-                
-                // Sync other email folders if needed
-                emailRepository.getOutbox()
-                emailRepository.getDrafts()
-                emailRepository.getStarred()
-                
-                Log.d("SyncDataWorker", "Email sync completed")
-            }
+//            withContext(Dispatchers.IO) {
+//                val emailRepository = EmailRepositoryImpl(apiProvider.emailApiService)
+//
+//                // Sync inbox emails
+//                emailRepository.getInbox()
+//
+//                // Sync other email folders if needed
+//                emailRepository.getOutbox()
+//                emailRepository.getDrafts()
+//                emailRepository.getStarred()
+//
+//                Log.d("SyncDataWorker", "Email sync completed")
+//            }
         } catch (e: Exception) {
             Log.e("SyncDataWorker", "Email sync failed", e)
         }
@@ -58,14 +58,14 @@ class SyncDataWorker(
 
     private suspend fun syncPersonas(apiProvider: ApiProvider) {
         try {
-            withContext(Dispatchers.IO) {
-                val personaRepository = PersonaRepositoryImpl(apiProvider.personaApiService)
-                
-                // Sync personas
-                personaRepository.getPersonas()
-                
-                Log.d("SyncDataWorker", "Persona sync completed")
-            }
+//            withContext(Dispatchers.IO) {
+//                val personaRepository = PersonaRepositoryImpl(apiProvider.personaApiService)
+//
+//                // Sync personas
+//                personaRepository.getPersonas()
+//
+//                Log.d("SyncDataWorker", "Persona sync completed")
+//            }
         } catch (e: Exception) {
             Log.e("SyncDataWorker", "Persona sync failed", e)
         }

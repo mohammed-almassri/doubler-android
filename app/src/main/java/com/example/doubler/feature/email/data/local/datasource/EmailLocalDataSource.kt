@@ -130,6 +130,8 @@ class EmailLocalDataSource(
     
     suspend fun clearAllEmails() {
         emailDao.deleteAllEmails()
+        recipientDao.clearAllRecipients()
+        senderDao.clearAllSenders()
     }
     
     suspend fun deleteOldEmails(cutoffDate: java.util.Date) {

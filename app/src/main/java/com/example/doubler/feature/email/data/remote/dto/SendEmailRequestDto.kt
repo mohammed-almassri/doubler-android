@@ -14,6 +14,8 @@ data class SendEmailRequestDto(
     val isDraft: Boolean = false,
     @SerializedName("in_reply_to")
     val inReplyTo: String? = null,
+    @SerializedName("persona_id")
+    val personaId: String,
     val attachments: List<AttachmentDto>? = null
 )
 

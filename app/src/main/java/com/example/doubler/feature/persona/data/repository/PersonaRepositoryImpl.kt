@@ -3,6 +3,7 @@ package com.example.doubler.feature.persona.data.repository
 import android.util.Log
 import com.example.doubler.core.network.error.ApiErrorHandler
 import com.example.doubler.core.network.error.ApiException
+import com.example.doubler.feature.persona.data.local.datasource.PersonaLocalDataSource
 import com.example.doubler.feature.persona.data.mapper.PersonaMapper
 import com.example.doubler.feature.persona.data.remote.api.PersonaApiService
 import com.example.doubler.feature.persona.data.remote.dto.*
@@ -10,7 +11,8 @@ import com.example.doubler.feature.persona.domain.model.Persona
 import com.example.doubler.feature.persona.domain.repository.PersonaRepository
 
 class PersonaRepositoryImpl(
-    private val personaApiService: PersonaApiService
+    private val personaApiService: PersonaApiService,
+    private val personaLocalDataSource: PersonaLocalDataSource,
 ) : PersonaRepository {
 
     override suspend fun getPersonas(
@@ -63,6 +65,7 @@ class PersonaRepositoryImpl(
             val response = personaApiService.createPersona(request)
                 val persona = PersonaMapper.mapToPersona(response.body()!!.data)
                 Log.d("PersonaRepository", "Successfully created persona: ${persona.name}")
+                personaLocalDataSource.insertPersona(persona = persona)
                 persona
         } catch (e: ApiException) {
             Log.e("PersonaRepository", "API exception while creating persona", e)

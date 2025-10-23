@@ -26,6 +26,7 @@ class EmailRepositoryImpl(
         bodyPlain: String?,
         isDraft: Boolean,
         inReplyTo: String?,
+        personaId: String,
         attachments: List<Attachment>?
     ): Email {
         return try {
@@ -78,6 +79,7 @@ class EmailRepositoryImpl(
                             bodyPlain = bodyPlain,
                             isDraft = false,
                             inReplyTo = inReplyTo,
+                            personaId = personaId,
                             attachments = attachments?.map { EmailMapper.mapToAttachmentDto(it) }
                         )
                         
@@ -107,6 +109,7 @@ class EmailRepositoryImpl(
                 bodyPlain = bodyPlain,
                 isDraft = isDraft,
                 inReplyTo = inReplyTo,
+                personaId = personaId,
                 attachments = attachments?.map { EmailMapper.mapToAttachmentDto(it) }
             )
 

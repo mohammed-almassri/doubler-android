@@ -18,6 +18,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.doubler.feature.email.data.repository.EmailRepositoryImpl
 import com.example.doubler.feature.email.ui.viewModel.ComposeEmailViewModel
+import com.example.doubler.feature.persona.data.local.PersonaPreferencesDataSource
+import com.example.doubler.feature.persona.data.local.database.PersonaDatabase
+import com.example.doubler.feature.persona.data.local.datasource.PersonaLocalDataSource
+import com.example.doubler.feature.persona.data.repository.CurrentPersonaRepositoryImpl
+import com.example.doubler.feature.persona.data.repository.PersonaRepositoryImpl
 import com.example.notthefinal.core.network.ApiProvider
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,17 +44,36 @@ fun ComposeEmailScreen(
             senderDao = database.emailSenderDao()
         )
         val networkObserver = com.example.doubler.core.network.connectivity.NetworkConnectivityObserver(context)
-        
+        val personaDb = PersonaDatabase.getDatabase(context)
+        val personaLocalDataSource = PersonaLocalDataSource(
+            personaDao = personaDb.personaDao(),
+        )
+
+
         ComposeEmailViewModel(
             emailRepository = EmailRepositoryImpl(
                 emailApiService = ApiProvider.getInstance(context).emailApiService,
                 localDataSource = localDataSource,
                 networkObserver = networkObserver
+            ),
+            currentPersonaRepository = CurrentPersonaRepositoryImpl(
+                personaRepository = PersonaRepositoryImpl(
+                    personaLocalDataSource = personaLocalDataSource,
+                    personaApiService =  ApiProvider.getInstance(context).personaApiService
+                ),
+                personaPreferencesDataSource = PersonaPreferencesDataSource(context)
+            ),
+            personaRepository = PersonaRepositoryImpl(
+                personaLocalDataSource = personaLocalDataSource,
+                personaApiService =  ApiProvider.getInstance(context).personaApiService
             )
         )
     }
 
     val uiState by viewModel.composeUiState.collectAsStateWithLifecycle()
+    val personas by viewModel.personas.collectAsStateWithLifecycle()
+    val selectedPersona by viewModel.selectedPersona.collectAsStateWithLifecycle()
+    val isLoadingPersonas by viewModel.isLoadingPersonas.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
     
     var to by remember { mutableStateOf(initialTo ?: "") }
@@ -58,6 +82,7 @@ fun ComposeEmailScreen(
     var subject by remember { mutableStateOf(initialSubject ?: "") }
     var body by remember { mutableStateOf(initialBody ?: "") }
     var showCcBcc by remember { mutableStateOf(false) }
+    var expandedPersonaDropdown by remember { mutableStateOf(false) }
     
     // Handle success state
     LaunchedEffect(uiState.isSuccess) {
@@ -79,7 +104,7 @@ fun ComposeEmailScreen(
                 // Save as Draft
                 IconButton(
                     onClick = {
-                        if (to.isNotBlank() && subject.isNotBlank()) {
+                        if (to.isNotBlank() && subject.isNotBlank() && selectedPersona != null) {
                             viewModel.sendEmail(
                                 to = listOf(to.trim()),
                                 cc = if (cc.isNotBlank()) cc.split(",").map { it.trim() } else null,
@@ -91,7 +116,7 @@ fun ComposeEmailScreen(
                             )
                         }
                     },
-                    enabled = to.isNotBlank() && subject.isNotBlank() && !uiState.isLoading
+                    enabled = to.isNotBlank() && subject.isNotBlank() && selectedPersona != null && !uiState.isLoading
                 ) {
                     Icon(Icons.Default.Settings, contentDescription = "Save Draft")
                 }
@@ -99,7 +124,7 @@ fun ComposeEmailScreen(
                 // Send Email
                 IconButton(
                     onClick = {
-                        if (to.isNotBlank() && subject.isNotBlank()) {
+                        if (to.isNotBlank() && subject.isNotBlank() && selectedPersona != null) {
                             viewModel.sendEmail(
                                 to = listOf(to.trim()),
                                 cc = if (cc.isNotBlank()) cc.split(",").map { it.trim() } else null,
@@ -111,7 +136,7 @@ fun ComposeEmailScreen(
                             )
                         }
                     },
-                    enabled = to.isNotBlank() && subject.isNotBlank() && !uiState.isLoading
+                    enabled = to.isNotBlank() && subject.isNotBlank() && selectedPersona != null && !uiState.isLoading
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(
@@ -154,6 +179,136 @@ fun ComposeEmailScreen(
                             text = uiState.error!!,
                             color = MaterialTheme.colorScheme.onErrorContainer
                         )
+                    }
+                }
+            }
+
+            // Persona Selection Dropdown
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Send as:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    ExposedDropdownMenuBox(
+                        expanded = expandedPersonaDropdown,
+                        onExpandedChange = { expandedPersonaDropdown = it },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = selectedPersona?.name ?: "Select a persona",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Persona") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Persona"
+                                )
+                            },
+                            trailingIcon = {
+                                if (isLoadingPersonas) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    ExposedDropdownMenuDefaults.TrailingIcon(
+                                        expanded = expandedPersonaDropdown
+                                    )
+                                }
+                            },
+                            placeholder = { Text("Choose your persona") },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                            )
+                        )
+                        
+                        ExposedDropdownMenu(
+                            expanded = expandedPersonaDropdown,
+                            onDismissRequest = { expandedPersonaDropdown = false },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            personas.forEach { persona ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Column {
+                                            Text(
+                                                text = persona.name,
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+                                            if (persona.email != null) {
+                                                Text(
+                                                    text = persona.email!!,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                    },
+                                    onClick = {
+                                        viewModel.selectPersona(persona)
+                                        expandedPersonaDropdown = false
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Default.AccountCircle,
+                                            contentDescription = "Persona Avatar"
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            
+                            if (personas.isEmpty() && !isLoadingPersonas) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = "No personas available",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    },
+                                    onClick = { expandedPersonaDropdown = false },
+                                    enabled = false
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Show selected persona details
+                    if (selectedPersona != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Selected",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Sending as: ${selectedPersona!!.name}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 }
             }

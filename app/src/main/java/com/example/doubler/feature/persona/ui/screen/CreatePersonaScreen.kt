@@ -20,6 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.example.doubler.feature.persona.data.local.dao.PersonaDao
+import com.example.doubler.feature.persona.data.local.database.PersonaDatabase
+import com.example.doubler.feature.persona.data.local.datasource.PersonaLocalDataSource
 import com.example.doubler.feature.persona.data.repository.PersonaRepositoryImpl
 import com.example.doubler.feature.persona.ui.viewModel.CreatePersonaViewModel
 import com.example.notthefinal.core.network.ApiProvider
@@ -34,10 +37,15 @@ fun CreatePersonaScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val database = PersonaDatabase.getDatabase(context)
+    val localDataSource = PersonaLocalDataSource(
+        personaDao = database.personaDao(),
+    )
     val viewModel: CreatePersonaViewModel = viewModel {
         CreatePersonaViewModel(
             personaRepository = PersonaRepositoryImpl(
-                personaApiService = ApiProvider.getInstance(context).personaApiService
+                personaApiService = ApiProvider.getInstance(context).personaApiService,
+                personaLocalDataSource = localDataSource
             ),
             onPersonaCreated = onPersonaCreated
         )

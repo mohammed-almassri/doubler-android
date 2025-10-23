@@ -13,6 +13,7 @@ interface EmailRepository {
         bodyPlain: String? = null,
         isDraft: Boolean = false,
         inReplyTo: String? = null,
+        personaId: String,
         attachments: List<Attachment>? = null
     ): Email
     
