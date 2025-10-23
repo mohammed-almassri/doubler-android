@@ -10,6 +10,8 @@ object Register: AppNavKey
 @Serializable
 object Login: AppNavKey
 @Serializable
+object CreatePersona: AppNavKey
+@Serializable
 object Home: AppNavKey
 @Serializable
 object EmailHome: AppNavKey

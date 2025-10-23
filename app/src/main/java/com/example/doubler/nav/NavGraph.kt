@@ -31,6 +31,7 @@ import com.example.doubler.feature.email.ui.screen.EmailHomeScreen
 import com.example.doubler.feature.email.ui.screen.EmailListScreen
 import com.example.doubler.feature.email.ui.screen.EmailListType
 import com.example.doubler.feature.home.ui.screen.HomeScreen
+import com.example.doubler.feature.persona.ui.screen.CreatePersonaScreen
 
 @Composable
 fun NavGraph(modifier: Modifier = Modifier) {
@@ -38,7 +39,7 @@ fun NavGraph(modifier: Modifier = Modifier) {
 
     // Determine if the bottom bar should be shown
     val showBottomBar = when (backStack.lastOrNull()) {
-        Register, Login, EmailHome, EmailInbox, EmailOutbox, EmailDrafts, EmailStarred, ComposeEmail -> false // Screens WITHOUT a bottom bar
+        Register, Login, CreatePersona, EmailHome, EmailInbox, EmailOutbox, EmailDrafts, EmailStarred, ComposeEmail -> false // Screens WITHOUT a bottom bar
         is EmailDetail -> false // Email detail screen without bottom bar
         else -> true // Screens WITH a bottom bar (Home, Settings, etc.)
     }
@@ -98,10 +99,20 @@ fun NavGraph(modifier: Modifier = Modifier) {
                         },
                         onRegisterSuccess = {
                             backStack.clear()
+                            backStack.add(CreatePersona)
+                        }
+                    )
+                }
+                
+                entry <CreatePersona>{
+                    CreatePersonaScreen(
+                        onPersonaCreated = {
+                            backStack.clear()
                             backStack.add(Home)
                         }
                     )
                 }
+                
                 entry <Login>{
                     LoginScreen(
                         onNavigateToRegister = {

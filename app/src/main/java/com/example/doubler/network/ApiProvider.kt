@@ -5,6 +5,7 @@ import android.util.Log
 import com.example.doubler.feature.auth.data.local.PreferencesDataSource
 import com.example.doubler.feature.auth.data.remote.api.AuthApiService
 import com.example.doubler.feature.email.data.remote.api.EmailApiService
+import com.example.doubler.feature.persona.data.remote.api.PersonaApiService
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
@@ -96,6 +97,15 @@ class ApiProvider private constructor(context: Context) {
             retrofit.value.create(EmailApiService::class.java)
         } catch (e: Exception) {
             Log.e("ApiProvider", "Failed to init Email API", e)
+            throw e
+        }
+    }
+    
+    val personaApiService: PersonaApiService by lazy {
+        try {
+            retrofit.value.create(PersonaApiService::class.java)
+        } catch (e: Exception) {
+            Log.e("ApiProvider", "Failed to init Persona API", e)
             throw e
         }
     }
