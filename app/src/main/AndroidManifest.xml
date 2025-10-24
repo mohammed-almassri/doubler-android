@@ -32,21 +32,19 @@
             </intent-filter>
         </activity>
 
+        <!-- Debug Activity -->
+        <activity
+            android:name=".debug.SyncDebugActivity"
+            android:exported="false"
+            android:label="Sync Debug"
+            android:theme="@style/Theme.Doubler" />
+
         <!-- Background Services -->
         <service
             android:name=".core.service.SyncService"
             android:enabled="true"
             android:exported="false" />
 
-        <!-- Alarm Receiver -->
-        <receiver
-            android:name=".core.alarm.AlarmReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>

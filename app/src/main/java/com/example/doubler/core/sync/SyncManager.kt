@@ -2,67 +2,39 @@ package com.example.doubler.core.sync
 
 import android.content.Context
 import android.util.Log
-import com.example.doubler.core.alarm.AlarmScheduler
 import com.example.doubler.core.service.SyncService
 import com.example.doubler.core.worker.BackgroundSyncScheduler
+import com.example.doubler.core.worker.WorkManagerDebugger
 
-enum class SyncStrategy {
-    WORK_MANAGER,    // Best for most cases - survives app restart
-    ALARM_MANAGER,   // For exact timing requirements
-    FOREGROUND_SERVICE, // For continuous background work
-    COMBINED         // Uses multiple strategies
-}
 
 object SyncManager {
     
     fun enableBackgroundSync(
-        context: Context, 
-        strategy: SyncStrategy = SyncStrategy.WORK_MANAGER,
-        intervalHours: Long = 1
+        context: Context,
+        intervalMinutes: Long = 15  // Changed from seconds to minutes
     ) {
-        when (strategy) {
-            SyncStrategy.WORK_MANAGER -> {
-                BackgroundSyncScheduler.schedulePeriodicSync(context, intervalHours)
-                Log.d("SyncManager", "WorkManager sync enabled")
-            }
-            
-            SyncStrategy.ALARM_MANAGER -> {
-                val intervalMillis = intervalHours * 60 * 60 * 1000L
-                AlarmScheduler.scheduleRepeatingAlarm(context, intervalMillis)
-                Log.d("SyncManager", "AlarmManager sync enabled")
-            }
-            
-            SyncStrategy.FOREGROUND_SERVICE -> {
-                SyncService.startService(context)
-                Log.d("SyncManager", "Foreground service sync enabled")
-            }
-            
-            SyncStrategy.COMBINED -> {
-                // Use WorkManager as primary + AlarmManager as backup
-                BackgroundSyncScheduler.schedulePeriodicSync(context, intervalHours)
-                val intervalMillis = intervalHours * 60 * 60 * 1000L
-                AlarmScheduler.scheduleRepeatingAlarm(context, intervalMillis)
-                Log.d("SyncManager", "Combined sync strategy enabled")
-            }
-        }
+        Log.d("SyncManager", "Enabling background sync with $intervalMinutes minute intervals")
+        BackgroundSyncScheduler.schedulePeriodicSync(context, intervalMinutes)
+        Log.d("SyncManager", "WorkManager sync enabled")
+    }
+    
+    fun enableTestingSync(
+        context: Context,
+        intervalSeconds: Long = 30  // For frequent testing
+    ) {
+        Log.d("SyncManager", "Enabling testing sync with $intervalSeconds second intervals")
+        BackgroundSyncScheduler.schedulePeriodicSync(context, intervalSeconds)
+        Log.d("SyncManager", "Testing sync enabled")
+    }
+    
+    fun triggerImmediateSync(context: Context) {
+        Log.d("SyncManager", "Triggering immediate sync")
+        WorkManagerDebugger.triggerImmediateSyncForTesting(context)
     }
     
     fun disableBackgroundSync(context: Context) {
-        BackgroundSyncScheduler.cancelAllSync(context)
-        AlarmScheduler.cancelAlarm(context)
+        WorkManagerDebugger.cancelAllWork(context)
         SyncService.stopService(context)
         Log.d("SyncManager", "All background sync disabled")
-    }
-    
-    fun triggerImmediateSync(context: Context, delayMinutes: Long = 0) {
-        BackgroundSyncScheduler.scheduleOneTimeSync(context, delayMinutes)
-        Log.d("SyncManager", "Immediate sync triggered")
-    }
-    
-    // Example usage for persona feature
-    fun schedulePersonaImageGeneration(context: Context, delayMinutes: Long = 15) {
-        // Schedule a one-time sync after user stops using the app
-        BackgroundSyncScheduler.scheduleOneTimeSync(context, delayMinutes)
-        Log.d("SyncManager", "Persona image generation scheduled in $delayMinutes minutes")
     }
 }
