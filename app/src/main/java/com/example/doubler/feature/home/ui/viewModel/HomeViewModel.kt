@@ -6,6 +6,7 @@ import com.example.doubler.core.auth.domain.repository.LogoutRepository
 import com.example.doubler.core.user.domain.repository.UserRepository
 import com.example.doubler.feature.home.ui.state.HomeUiState
 import com.example.doubler.feature.persona.domain.repository.CurrentPersonaRepository
+import com.example.doubler.feature.persona.domain.repository.PersonaRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,6 +16,7 @@ import kotlinx.coroutines.launch
 class HomeViewModel(
     private val userRepository: UserRepository,
     private val currentPersonaRepository: CurrentPersonaRepository,
+    private val personaRepository: PersonaRepository,
     private val logoutRepository: LogoutRepository
 ) : ViewModel() {
     
@@ -23,6 +25,7 @@ class HomeViewModel(
     
     init {
         loadUserAndPersona()
+        loadPersonas()
     }
     
     private fun loadUserAndPersona() {
@@ -31,7 +34,7 @@ class HomeViewModel(
                 userRepository.getCurrentUser(),
                 currentPersonaRepository.getCurrentPersona()
             ) { user, persona ->
-                HomeUiState(
+                _homeUiState.value.copy(
                     user = user,
                     currentPersona = persona,
                     isLoading = false,
@@ -39,6 +42,21 @@ class HomeViewModel(
                 )
             }.collect { newState ->
                 _homeUiState.value = newState
+            }
+        }
+    }
+    
+    private fun loadPersonas() {
+        viewModelScope.launch {
+            try {
+                val personas = personaRepository.getPersonas()
+                _homeUiState.value = _homeUiState.value.copy(
+                    personas = personas
+                )
+            } catch (e: Exception) {
+                _homeUiState.value = _homeUiState.value.copy(
+                    error = "Failed to load personas: ${e.message}"
+                )
             }
         }
     }
@@ -64,6 +82,7 @@ class HomeViewModel(
                 _homeUiState.value = _homeUiState.value.copy(
                     user = null,
                     currentPersona = null,
+                    personas = emptyList(),
                     isLoading = false,
                     error = null
                 )

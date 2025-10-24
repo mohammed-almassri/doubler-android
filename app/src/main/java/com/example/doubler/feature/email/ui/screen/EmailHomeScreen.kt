@@ -53,21 +53,25 @@ fun EmailHomeScreen(
             recipientDao = database.emailRecipientDao(),
             senderDao = database.emailSenderDao()
         )
+        val personaRepository = PersonaRepositoryImpl(
+            personaLocalDataSource = personaLocalDataSource,
+            personaApiService =  ApiProvider.getInstance(context).personaApiService
+        )
         HomeViewModel(
             userRepository =userRepository ,
             currentPersonaRepository = CurrentPersonaRepositoryImpl(
-                personaRepository = PersonaRepositoryImpl(
-                    personaLocalDataSource = personaLocalDataSource,
-                    personaApiService =  ApiProvider.getInstance(context).personaApiService
-                ),
+                personaRepository = personaRepository,
                 personaPreferencesDataSource = PersonaPreferencesDataSource(context)
             ),
             logoutRepository = LogoutRepositoryImpl(
                 personaPreferencesDataSource = PersonaPreferencesDataSource(context)
                 , emailLocalDataSource = localDataSource,
                 personaLocalDataSource = personaLocalDataSource,
-                userRepository = userRepository
-            )
+                userRepository = userRepository,
+
+
+            ),
+                personaRepository = personaRepository
         )
     }
 

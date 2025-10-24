@@ -68,6 +68,10 @@ fun HomeScreen(
                 ),
                 personaPreferencesDataSource = personaPreferencesDataSource
             ),
+            personaRepository = PersonaRepositoryImpl(
+                personaLocalDataSource = personaLocalDataSource,
+                personaApiService =  ApiProvider.getInstance(context).personaApiService
+            ),
             logoutRepository = LogoutRepositoryImpl(
                 userRepository = userRepository,
                 emailLocalDataSource = emailLocalDataSource,
@@ -286,6 +290,33 @@ fun HomeScreen(
                     
                     Spacer(modifier = Modifier.height(32.dp))
                     
+                    // Personas Section
+                    if (uiState.personas.isNotEmpty()) {
+                        Text(
+                            text = "Your Personas",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp)
+                        )
+                        
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            uiState.personas.forEach { persona ->
+                                PersonaCard(
+                                    persona = persona,
+                                    isSelected = persona.id == uiState.currentPersona?.id,
+                                    onClick = { viewModel.setCurrentPersona(persona.id) }
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(32.dp))
+                    }
+                    
                     // Quick Actions
                     Text(
                         text = "Quick Actions",
@@ -390,6 +421,145 @@ private fun ActionCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+        }
+    }
+}
+
+@Composable
+private fun PersonaCard(
+    modifier: Modifier = Modifier,
+    persona: com.example.doubler.feature.persona.domain.model.Persona,
+    isSelected: Boolean = false,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) 
+                MaterialTheme.colorScheme.primaryContainer 
+            else 
+                MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (isSelected) 8.dp else 4.dp
+        ),
+        border = if (isSelected) androidx.compose.foundation.BorderStroke(
+            2.dp, 
+            MaterialTheme.colorScheme.primary
+        ) else null
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Avatar
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                if (persona.imageUrl.isNullOrBlank()) {
+                    Card(
+                        modifier = Modifier.fillMaxSize(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) 
+                                MaterialTheme.colorScheme.primary 
+                            else 
+                                MaterialTheme.colorScheme.secondary
+                        ),
+                        shape = CircleShape
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = persona.name.firstOrNull()?.uppercase() ?: "P",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = if (isSelected) 
+                                    MaterialTheme.colorScheme.onPrimary 
+                                else 
+                                    MaterialTheme.colorScheme.onSecondary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                } else {
+                    // TODO: Load image from URL when implementing image loading
+                    Card(
+                        modifier = Modifier.fillMaxSize(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        ),
+                        shape = CircleShape
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = "Profile Picture",
+                                modifier = Modifier.size(24.dp),
+                                tint = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            // Persona Info
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = persona.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isSelected) 
+                        MaterialTheme.colorScheme.onPrimaryContainer 
+                    else 
+                        MaterialTheme.colorScheme.onSurface
+                )
+                if (!persona.email.isNullOrBlank()) {
+                    Text(
+                        text = persona.email,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isSelected) 
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (!persona.bio.isNullOrBlank()) {
+                    Text(
+                        text = persona.bio,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isSelected) 
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
+                        else 
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                }
+            }
+            
+            // Selected indicator
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = "Selected",
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }
