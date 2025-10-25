@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.example.doubler.core.auth.data.repository.LogoutRepositoryImpl
 import com.example.doubler.core.user.data.repository.UserRepositoryImpl
 import com.example.doubler.feature.auth.data.local.PreferencesDataSource
@@ -497,17 +499,12 @@ private fun PersonaCard(
                         ),
                         shape = CircleShape
                     ) {
-                        Box(
+                        AsyncImage(
+                            model = persona.imageUrl,
+                            contentDescription = "Generated avatar",
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Profile Picture",
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onSecondary
-                            )
-                        }
+                            contentScale = ContentScale.Crop
+                        )
                     }
                 }
             }

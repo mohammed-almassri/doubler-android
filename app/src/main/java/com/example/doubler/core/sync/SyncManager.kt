@@ -23,7 +23,7 @@ object SyncManager {
         intervalSeconds: Long = 30  // For frequent testing
     ) {
         Log.d("SyncManager", "Enabling testing sync with $intervalSeconds second intervals")
-        BackgroundSyncScheduler.schedulePeriodicSync(context, intervalSeconds)
+        BackgroundSyncScheduler.scheduleOneTimeSync(context, intervalSeconds)
         Log.d("SyncManager", "Testing sync enabled")
     }
     

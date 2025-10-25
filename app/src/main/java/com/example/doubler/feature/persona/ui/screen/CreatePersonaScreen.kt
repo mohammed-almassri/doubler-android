@@ -59,23 +59,14 @@ fun CreatePersonaScreen(
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     
-    // Debounced image generation
     var debounceJob by remember { mutableStateOf<Job?>(null) }
     
-    // Auto-generate image when name or bio changes (debounced)
-    LaunchedEffect(name, bio) {
-        // Cancel previous job if it exists
+    LaunchedEffect(bio) {
         debounceJob?.cancel()
-        
-        if (name.isNotBlank() || bio.isNotBlank()) {
+        if ( bio.isNotBlank()) {
             debounceJob = launch {
-                delay(700) // Wait for 700ms
-                val prompt = if (name.isNotBlank()) {
-                    "A professional avatar for a person named $name"
-                } else {
-                    "A professional avatar for $bio"
-                }
-                viewModel.generateImage(prompt)
+                delay(1000)
+                viewModel.generateImage(bio)
             }
         }
     }
@@ -106,7 +97,7 @@ fun CreatePersonaScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .height(300.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 AsyncImage(

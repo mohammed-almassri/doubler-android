@@ -207,29 +207,29 @@ private fun EmailItem(
             Column(
                 modifier = Modifier.weight(1f)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = email.fromName?:"",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = if (!email.isRead) FontWeight.Bold else FontWeight.Normal,
-                        modifier = Modifier.weight(1f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    if(email.createdAt != null)
-                    Text(
-                        text = formatDate(email.createdAt),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
+//                Row(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                    verticalAlignment = Alignment.Top
+//                ) {
+//                    Text(
+//                        text = email.fromName?:"",
+//                        style = MaterialTheme.typography.titleMedium,
+//                        fontWeight = if (!email.isRead) FontWeight.Bold else FontWeight.Normal,
+//                        modifier = Modifier.weight(1f),
+//                        maxLines = 1,
+//                        overflow = TextOverflow.Ellipsis
+//                    )
+//                    if(email.createdAt != null)
+//                    Text(
+//                        text = formatDate(email.createdAt),
+//                        style = MaterialTheme.typography.bodySmall,
+//                        color = MaterialTheme.colorScheme.onSurfaceVariant
+//                    )
+//                }
+//
+//                Spacer(modifier = Modifier.height(4.dp))
+//
                 Text(
                     text = email.subject?:"",
                     style = MaterialTheme.typography.bodyLarge,

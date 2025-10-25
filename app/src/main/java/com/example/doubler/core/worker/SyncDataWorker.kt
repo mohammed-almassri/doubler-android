@@ -68,10 +68,7 @@ class SyncDataWorker(
                     localDataSource = localDataSource,
                     networkObserver = networkObserver
                 )
-                // Sync inbox emails
                 emailRepository.getInbox()
-
-                // Sync other email folders if needed
                 emailRepository.getOutbox()
                 emailRepository.getDrafts()
                 emailRepository.getStarred()
